@@ -58,6 +58,14 @@
 
         <main class="flex-1 flex flex-col items-center justify-center p-8 max-w-5xl mx-auto w-full mt-4">
 
+            <div v-if="currentQuestion.image" class="w-full flex justify-center mb-8">
+                <div
+                    class="relative max-w-3xl w-full h-64 md:h-96 bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <img :src="`/storage/${currentQuestion.image}`" class="w-full h-full object-contain p-3"
+                        alt="Soru Görseli">
+                </div>
+            </div>
+
             <div
                 class="w-full bg-white p-12 rounded-3xl border border-slate-200 mb-10 text-center shadow-sm relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1.5 opacity-30 transition-colors duration-500"

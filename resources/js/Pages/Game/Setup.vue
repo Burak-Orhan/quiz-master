@@ -168,6 +168,18 @@
                 </section>
 
                 <div class="pt-8 border-t border-slate-100">
+                    <div class="flex justify-center mb-5">
+                        <button @click="showRulesModal = true"
+                            class="text-[11px] font-bold text-slate-400 hover:text-indigo-500 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Bu mod nasıl oynanır?
+                        </button>
+                    </div>
+
                     <button @click="startGame" :disabled="status !== 'success'"
                         class="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white text-base font-bold py-5 rounded-2xl transition-colors">
                         {{ status === 'success' ? 'Oyunu Başlat' : 'Lütfen Geçerli Bir Kod Girin' }}
@@ -176,6 +188,88 @@
             </div>
         </div>
     </div>
+
+    <Transition enter-active-class="transition-all duration-300 ease-out" enter-from-class="opacity-0"
+        enter-to-class="opacity-100" leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100" leave-to-class="opacity-0">
+        <div v-if="showRulesModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40"
+            @click="showRulesModal = false">
+        </div>
+    </Transition>
+
+    <Transition enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 scale-95 translate-y-4" enter-to-class="opacity-100 scale-100 translate-y-0"
+        leave-active-class="transition-all duration-200 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0"
+        leave-to-class="opacity-0 scale-95 translate-y-4">
+        <div v-if="showRulesModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 pointer-events-none">
+
+            <div class="bg-white rounded-3xl p-8 max-w-md w-full relative shadow-2xl pointer-events-auto">
+
+                <button @click="showRulesModal = false"
+                    class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </button>
+
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-900 tracking-tight">Oyun Kuralları</h3>
+                </div>
+
+                <ul class="space-y-4 text-sm font-medium text-slate-600">
+                    <li class="flex items-start gap-3">
+                        <span class="text-blue-500 text-lg leading-none">⏱️</span>
+                        <span>Her soru için <strong>{{ form.timeLimit }} saniye</strong> süreniz var. Süre dolduğunda
+                            yanlış
+                            cevaplamış sayılırsınız.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-emerald-500 text-lg leading-none">✅</span>
+                        <span>Doğru cevaplar takıma/sana <strong>+{{ form.correctPoints }} puan</strong>
+                            kazandırır.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-red-500 text-lg leading-none">❌</span>
+                        <span>Yanlış cevaplarda veya süre bittiğinde <strong>{{ form.wrongPoints }} puan</strong>
+                            silinir.
+                            Puan eksiye düşebilir.</span>
+                    </li>
+
+                    <div class="pt-4 mt-2 border-t border-slate-100">
+                        <li v-if="form.mode === 'single'"
+                            class="flex items-start gap-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
+                            <span class="text-indigo-500 text-lg leading-none">👤</span>
+                            <span class="text-indigo-900"><strong>Tek Kişilik Mod:</strong> Sıra beklemeden tüm soruları
+                                kendi hızında cevaplarsın. Amacın oyun sonunda kendi rekorunu kırmaktır.</span>
+                        </li>
+                        <li v-else
+                            class="flex items-start gap-3 bg-amber-50/50 p-3 rounded-xl border border-amber-100/50">
+                            <span class="text-amber-500 text-lg leading-none">👥</span>
+                            <span class="text-amber-900"><strong>Grup Modu:</strong> Takımlar sırayla yarışır. Yukarıda
+                                ismi
+                                yazan takımın sırasıdır ve soruyu sadece o takım cevaplamalıdır. En yüksek puanı
+                                toplayan
+                                kazanır.</span>
+                        </li>
+                    </div>
+                </ul>
+
+                <button @click="showRulesModal = false"
+                    class="w-full mt-8 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-colors">
+                    Anladım, Kapat
+                </button>
+            </div>
+        </div>
+    </Transition>
 </template>
 
 <script setup>
@@ -186,19 +280,20 @@ import axios from 'axios'
 const props = defineProps({
     quiz: {
         type: Object,
-        default: () => ({ id: null, questions: [] }) 
+        default: () => ({ id: null, questions: [] })
     }
 })
 
 const page = usePage()
 
+const showRulesModal = ref(false)
 const quizCode = ref('')
 const status = ref('idle')
 const statusMessage = ref('Sınav kodunu girdiğinizde otomatik olarak doğrulanacaktır.')
 let debounceTimer = null
 
 const form = useForm({
-    quiz_id: props.quiz?.id || null, 
+    quiz_id: props.quiz?.id || null,
     mode: 'group',
     teams: [
         { id: 1, name: 'A Grubu', color: '#1e293b' },

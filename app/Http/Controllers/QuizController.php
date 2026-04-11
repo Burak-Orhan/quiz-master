@@ -49,6 +49,7 @@ class QuizController extends Controller
             'questions.*.text' => 'required|string',
             'questions.*.options' => 'required|array',
             'questions.*.correct' => 'required|string',
+            'questions.*.image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $code = 'QM-'.strtoupper(Str::random(5));
@@ -57,11 +58,28 @@ class QuizController extends Controller
             $code = 'QM-'.strtoupper(Str::random(5));
         }
 
+        $processedQuestions = [];
+
+        foreach ($request->questions as $index => $qData) {
+            $imagePath = null;
+
+            if ($request->hasFile("questions.{$index}.image")) {
+                $imagePath = $request->file("questions.{$index}.image")->store('question_images', 'public');
+            }
+
+            $processedQuestions[] = [
+                'text' => $qData['text'],
+                'options' => $qData['options'],
+                'correct' => $qData['correct'],
+                'image' => $imagePath,
+            ];
+        }
+
         Quiz::create([
             'user_id' => auth()->id(),
             'title' => $validated['title'],
             'code' => $code,
-            'questions' => $validated['questions'],
+            'questions' => $processedQuestions,
         ]);
 
         return redirect()->route('dashboard');
@@ -111,11 +129,30 @@ class QuizController extends Controller
             'questions.*.text' => 'required|string',
             'questions.*.options' => 'required|array',
             'questions.*.correct' => 'required|string|in:A,B,C,D',
+            'questions.*.image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'questions.*.existing_image' => 'nullable|string',
         ]);
+
+        $processedQuestions = [];
+
+        foreach ($request->questions as $index => $qData) {
+            $imagePath = $qData['existing_image'] ?? null;
+
+            if ($request->hasFile("questions.{$index}.image")) {
+                $imagePath = $request->file("questions.{$index}.image")->store('question_images', 'public');
+            }
+
+            $processedQuestions[] = [
+                'text' => $qData['text'],
+                'options' => $qData['options'],
+                'correct' => $qData['correct'],
+                'image' => $imagePath,
+            ];
+        }
 
         $quiz->update([
             'title' => $validated['title'],
-            'questions' => $validated['questions'],
+            'questions' => $processedQuestions,
         ]);
 
         return redirect()->route('dashboard')->with('success', 'Sınav güncellendi.');
@@ -196,7 +233,7 @@ class QuizController extends Controller
         if (! $results) {
             return redirect()->route('home');
         }
-        
+
         return Inertia::render('Game/Result', [
             'teams' => $results['teams'],
             'history' => $results['history'],

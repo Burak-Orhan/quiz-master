@@ -70,7 +70,7 @@
                     class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm relative group transition-all duration-300 hover:shadow-md">
 
                     <button v-if="form.questions.length > 1" @click="removeQuestion(qIndex)"
-                        class="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                         title="Soruyu Sil">
                         ✕
                     </button>
@@ -117,6 +117,58 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="flex justify-end mt-4" v-if="!question.showImageArea && !question.imagePreview">
+                        <button @click.prevent="question.showImageArea = true"
+                            class="text-[11px] uppercase tracking-widest font-black text-indigo-500 hover:text-indigo-700 transition-colors flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Görsel Ekle
+                        </button>
+                    </div>
+
+                    <Transition enter-active-class="transition-all duration-500 ease-out"
+                        enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0"
+                        leave-active-class="" leave-from-class="" leave-to-class="">
+                        <div v-if="question.showImageArea || question.imagePreview"
+                            class="my-6 bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-inner">
+
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="text-xs uppercase tracking-widest font-black text-slate-400">Soru Görseli
+                                </h4>
+                                <button @click.prevent="removeQuestionImage(qIndex)"
+                                    class="text-[10px] uppercase font-black text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors">
+                                    {{ question.imagePreview ? 'Görseli Sil' : 'Vazgeç' }}
+                                </button>
+                            </div>
+
+                            <div v-if="!question.imagePreview" class="relative group">
+                                <div
+                                    class="w-full h-32 bg-white border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center transition-all group-hover:border-indigo-400 group-hover:bg-indigo-50/50 cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        class="h-6 w-6 text-slate-300 group-hover:text-indigo-500 mb-2 transition-colors"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    </svg>
+                                    <span class="text-xs font-bold text-slate-500 group-hover:text-indigo-600">Tıkla
+                                        veya Sürükle</span>
+                                </div>
+                                <input type="file" @change="(e) => handleQuestionImageUpload(e, qIndex)"
+                                    accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            </div>
+
+                            <div v-else class="relative w-full max-w-sm mx-auto">
+                                <img :src="question.imagePreview"
+                                    class="w-full h-48 object-contain rounded-xl border border-slate-200 bg-white shadow-sm p-2"
+                                    alt="Soru Önizleme">
+                            </div>
+                        </div>
+                    </Transition>
+
                 </div>
 
                 <button @click="addQuestion"
@@ -154,7 +206,10 @@ const addQuestion = () => {
     form.questions.push({
         text: '',
         options: { A: '', B: '', C: '', D: '' },
-        correct: 'A'
+        correct: 'A',
+        image: null,
+        imagePreview: null,
+        showImageArea: false,
     })
 
     setTimeout(() => {
@@ -176,6 +231,20 @@ const removeQuestion = (index) => {
         })
     }
 }
+
+const handleQuestionImageUpload = (event, index) => {
+    const file = event.target.files[0];
+    if (file) {
+        form.questions[index].image = file;
+        form.questions[index].imagePreview = URL.createObjectURL(file);
+    }
+};
+
+const removeQuestionImage = (index) => {
+    form.questions[index].image = null;
+    form.questions[index].imagePreview = null;
+    form.questions[index].showImageArea = false;
+};
 
 const submit = () => {
     if (!form.title.trim()) {

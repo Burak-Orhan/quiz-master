@@ -276,6 +276,13 @@ const submit = () => {
             form.post('/quizzes', {
                 preserveScroll: true,
                 onSuccess: () => {
+                },
+                onError: (errors) => {
+                    if (errors.error) {
+                        toast.error(errors.error);
+                    } else {
+                        toast.error('Kaydedilirken bir hata oluştu. Lütfen verileri kontrol edin.');
+                    }
                 }
             })
         }

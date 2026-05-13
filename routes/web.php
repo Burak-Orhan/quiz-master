@@ -17,8 +17,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware("throttle:5,1")->name("login.post");
+    Route::post('/register', [AuthController::class, 'register'])->middleware("throttle:5,1")->name("register.post");
 });
 
 Route::middleware('auth')->group(function () {
@@ -37,7 +37,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{quiz}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
         Route::get('/{quiz}/report', [QuizController::class, 'report'])->name('quizzes.report');
 
-        Route::post('/', [QuizController::class, 'store'])->name('quizzes.store');
+        Route::post('/', [QuizController::class, 'store'])->middleware("throttle:5,1")->name('quizzes.store');
 
         Route::patch('/{quiz}/toggle-status', [QuizController::class, 'toggleStatus'])->name('quizzes.toggle-status');
         Route::put('/{quiz}', [QuizController::class, 'update'])->name('quizzes.update');

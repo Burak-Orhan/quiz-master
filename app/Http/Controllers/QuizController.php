@@ -6,6 +6,8 @@ use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -43,46 +45,59 @@ class QuizController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'questions' => 'required|array|min:1',
-            'questions.*.text' => 'required|string',
-            'questions.*.options' => 'required|array',
-            'questions.*.correct' => 'required|string',
-            'questions.*.image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ]);
+        DB::beginTransaction();
 
-        $code = 'QM-'.strtoupper(Str::random(5));
+        try {
 
-        while (Quiz::where('code', $code)->exists()) {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'questions' => 'required|array|min:1',
+                'questions.*.text' => 'required|string',
+                'questions.*.options' => 'required|array',
+                'questions.*.correct' => 'required|string',
+                'questions.*.image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            ]);
+
             $code = 'QM-'.strtoupper(Str::random(5));
-        }
 
-        $processedQuestions = [];
-
-        foreach ($request->questions as $index => $qData) {
-            $imagePath = null;
-
-            if ($request->hasFile("questions.{$index}.image")) {
-                $imagePath = $request->file("questions.{$index}.image")->store('question_images', 'public');
+            while (Quiz::where('code', $code)->exists()) {
+                $code = 'QM-'.strtoupper(Str::random(5));
             }
 
-            $processedQuestions[] = [
-                'text' => $qData['text'],
-                'options' => $qData['options'],
-                'correct' => $qData['correct'],
-                'image' => $imagePath,
-            ];
+            $processedQuestions = [];
+
+            foreach ($request->questions as $index => $qData) {
+                $imagePath = null;
+
+                if ($request->hasFile("questions.{$index}.image")) {
+                    $imagePath = $request->file("questions.{$index}.image")->store('question_images', 'public');
+                }
+
+                $processedQuestions[] = [
+                    'text' => $qData['text'],
+                    'options' => $qData['options'],
+                    'correct' => $qData['correct'],
+                    'image' => $imagePath,
+                ];
+            }
+
+            Quiz::create([
+                'user_id' => auth()->id(),
+                'title' => $validated['title'],
+                'code' => $code,
+                'questions' => $processedQuestions,
+            ]);
+
+            // throw new Exception('Test');
+            DB::commit();
+
+            return redirect()->route('dashboard');
+        } catch (Exception $e) {
+
+            DB::rollBack();
+
+            return back()->withErrors(['error' => $e->getMessage()]);
         }
-
-        Quiz::create([
-            'user_id' => auth()->id(),
-            'title' => $validated['title'],
-            'code' => $code,
-            'questions' => $processedQuestions,
-        ]);
-
-        return redirect()->route('dashboard');
     }
 
     public function toggleStatus(Request $request, Quiz $quiz)

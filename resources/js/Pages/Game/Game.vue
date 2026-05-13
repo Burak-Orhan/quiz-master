@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            <div
+            <div style="white-space: pre-line;"
                 class="w-full bg-white p-12 rounded-3xl border border-slate-200 mb-10 text-center shadow-sm relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1.5 opacity-30 transition-colors duration-500"
                     :style="{ backgroundColor: teams[currentTurn].color }"></div>
